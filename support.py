@@ -12,9 +12,13 @@ def download_get_url(url):
     buffer = BytesIO()
     client.setopt(client.WRITEDATA, buffer)
     client.setopt(pycurl.USERAGENT, "VodousApp/1.0 (+tomas.vlasaty8@gmail.cz; https://jomipon-beruska-prototyp.streamlit.app/)")
-    client.perform()
-    status = client.getinfo(pycurl.RESPONSE_CODE)
-    client.close()
-    body = buffer.getvalue()
-    body = body.decode("utf-8")
+    try:
+        client.perform()
+        status = client.getinfo(pycurl.RESPONSE_CODE)
+        client.close()
+        body = buffer.getvalue()
+        body = body.decode("utf-8")
+    except:
+        status = 500
+        body = None
     return {"status": status, "data": body}

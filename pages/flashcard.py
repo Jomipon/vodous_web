@@ -50,20 +50,19 @@ def main():
     """
     load_dotenv()
 
-    with st.form("word_chosser", clear_on_submit=True):
-        if st.session_state.get("reset", True):
-            find_new_word()
-            st.session_state.reset = False
-        st.markdown("<h2><b>Flashcard</b></h2>",unsafe_allow_html=True)
-        if st.session_state["word_original"]:
-            with st.container(border=True):
-                st.markdown(f"<h3><b>{st.session_state["word_original"]["orig_word"]}</b></h3>",unsafe_allow_html=True)
-                st.markdown(f"<i>{st.session_state["word_original"]["orig_note"]}</i>",unsafe_allow_html=True)
-                
-                if st.form_submit_button("Přeložit"):
-                    st.markdown(f"<h3><b>{st.session_state["word_original"]["tran_word"]}</b></h3>",unsafe_allow_html=True)
-                    st.markdown(f"<i>{st.session_state["word_original"]["tran_note"]}</i>",unsafe_allow_html=True)
-                    st.form_submit_button("Další", on_click=reset_word)
-
+    if st.session_state.get("reset", True):
+        find_new_word()
+        st.session_state.reset = False
+    st.markdown("<h2><b>Flashcard</b></h2>",unsafe_allow_html=True)
+    if st.session_state["word_original"]:
+        with st.form("word_chosser", clear_on_submit=True):
+            st.markdown(f"<h3><b>{st.session_state["word_original"]["orig_word"]}</b></h3>",unsafe_allow_html=True)
+            st.markdown(f"<i>{st.session_state["word_original"]["orig_note"]}</i>",unsafe_allow_html=True)
+            if st.form_submit_button("Přeložit"):
+                st.markdown(f"<h3><b>{st.session_state["word_original"]["tran_word"]}</b></h3>",unsafe_allow_html=True)
+                st.markdown(f"<i>{st.session_state["word_original"]["tran_note"]}</i>",unsafe_allow_html=True)
+                st.form_submit_button("Další", on_click=reset_word)
+    else:
+        st.write("Chyba při připojení na server")
 if __name__ == "__main__":
     main()

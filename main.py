@@ -1,5 +1,5 @@
 """
-Hlavní a zaváděcí program pro spuštění aplikace
+Main program for Vodous
 """
 
 import os
@@ -10,9 +10,11 @@ import pages.page_controller as pgs
 
 load_dotenv()
 
+# ENV properties
 APP_BASE_URL = os.getenv("APP_BASE_URL")
 APP_NAME = os.getenv("APP_NAME")
 
+# pages
 pg = pgs.PageController()
 page_board         = pg.page_create("pages/board.py", "Board", "board")
 page_companie      = pg.page_create("pages/flashcard.py", "Flash card", "flashcard")
@@ -22,6 +24,7 @@ pg.create_page_navigator()
 
 st.set_page_config(page_title="Vodouš", page_icon="pictures/vodous_tmavy_head.png")
 
+# main menu
 main_menu()
 
 with st.container(border=True):
