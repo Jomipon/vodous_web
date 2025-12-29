@@ -1,0 +1,5 @@
+# Enviroments
+.env
+__pycache__/
+app.log
+/venv_vodous_web
