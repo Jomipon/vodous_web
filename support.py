@@ -17,7 +17,10 @@ def download_get_url(url):
         status = client.getinfo(pycurl.RESPONSE_CODE)
         client.close()
         body = buffer.getvalue()
-        body = body.decode("utf-8")
+        try:
+            body = body.decode("utf-8")
+        except:
+            pass
     except:
         status = 500
         body = None

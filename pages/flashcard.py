@@ -38,18 +38,30 @@ def find_new_word():
         new_word = ""
     st.session_state["word_original"] = new_word
 
+def get_word_speech(word_id):
+    """
+    Download speech for word
+    """
+    if not st.session_state.get("word_speech", None):
+        url_base = os.getenv("FAST_API_URL_BASE")
+        url_word_speech = os.getenv("FAST_API_URL_WORD_SPEECH")
+        url = url_base + url_word_speech.format(word_id=word_id)
+        speech_word = download_get_url(url)
+
+        st.session_state["word_speech"] = speech_word
+
 def reset_word():
     """
     Reset values to reload word
     """
     st.session_state.reset = True
+    st.session_state["word_speech"] = None
 
 def main():
     """
     Main method for flashcard
     """
     load_dotenv()
-
     if st.session_state.get("reset", True):
         find_new_word()
         st.session_state.reset = False
@@ -58,6 +70,10 @@ def main():
         with st.form("word_chosser", clear_on_submit=True):
             st.markdown(f"<h3><b>{st.session_state["word_original"]["orig_word"]}</b></h3>",unsafe_allow_html=True)
             st.markdown(f"<i>{st.session_state["word_original"]["orig_note"]}</i>",unsafe_allow_html=True)
+            if st.form_submit_button("", icon=":material/speaker:"):
+                get_word_speech(st.session_state["word_original"]["orig_word_id"])
+                audio = st.session_state["word_speech"]
+                st.audio(audio["data"], format="audio/mp3", autoplay=True)
             if st.form_submit_button("Přeložit"):
                 st.markdown(f"<h3><b>{st.session_state["word_original"]["tran_word"]}</b></h3>",unsafe_allow_html=True)
                 st.markdown(f"<i>{st.session_state["word_original"]["tran_note"]}</i>",unsafe_allow_html=True)
