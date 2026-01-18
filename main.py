@@ -17,8 +17,8 @@ APP_NAME = os.getenv("APP_NAME")
 # pages
 pg = pgs.PageController()
 page_board         = pg.page_create("pages/board.py", "Board", "board")
-page_companie      = pg.page_create("pages/flashcard.py", "Flash card", "flashcard")
-page_company       = pg.page_create("pages/matching.py", "Matching", "matching")
+page_flashcard     = pg.page_create("pages/flashcard.py", "Flash card", "flashcard")
+page_matching      = pg.page_create("pages/matching.py", "Matching", "matching")
 
 pg.create_page_navigator()
 

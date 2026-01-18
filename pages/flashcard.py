@@ -31,9 +31,12 @@ def find_new_word():
     """
     Send request to API for next word
     """
+    params = st.query_params
+    para_language_from = params.get("language_from", "EN").upper()
+    para_language_to = params.get("language_to", "CZ").upper()
     url_base = os.getenv("FAST_API_URL_BASE")
     url_random_word = os.getenv("FAST_API_URL_RANDOM_WORD")
-    url = url_base + url_random_word.format(id_seed=123456789)
+    url = url_base + url_random_word.format(id_seed=123456789) + f"?word_language_from={para_language_from}&word_language_to={para_language_to}"
     random_word = download_get_url(url)
     if random_word["status"] == 200:
         new_word = parse_responce_new_word(json.loads(random_word["data"]))
@@ -67,7 +70,20 @@ def set_rating(word_translate_id: str, rating: float):
     url = url_base + url_rating_word.format(word_translate_id = word_translate_id, rating = rating)
     download_post_url(url, "()", [])
     reset_word()
+
+def change_translate(language_from: str, language_to: str):
+    """
+    Set FROM and TO for words
     
+    :param language_from: Language short
+    :type language_from: str
+    :param language_to: Language short
+    :type language_to: str
+    """
+    st.query_params["language_from"] = language_from
+    st.query_params["language_to"] = language_to
+    reset_word()
+
 def reset_word():
     """
     Reset values to reload word
@@ -75,15 +91,41 @@ def reset_word():
     st.session_state.reset = True
     st.session_state["word_speech"] = None
 
+def check_url_parameters():
+    """
+    Check and set default url parameters
+    """
+    url_base = os.getenv("FAST_API_URL_BASE")
+    url_all_languages = os.getenv("FAST_API_URL_WORD_LANGUAGES")
+    url = url_base + url_all_languages
+    responce = download_get_url(url)
+    
+    params = st.query_params
+    para_language_from = params.get("language_from", "EN").upper()
+    para_language_to = params.get("language_to", "CZ").upper()
+    trans_found = False
+    
+    for trans in json.loads(responce["data"])["data"]:
+        language_from = trans['word_language_from'].upper()
+        language_to = trans['word_language_to'].upper()
+        st.button(f"{language_from} - {language_to}", on_click=change_translate, args=(language_from, language_to,))
+        if para_language_from == language_from and para_language_to == language_to:
+            trans_found = True
+    if not trans_found:
+        change_translate(para_language_from, para_language_to)
+        reset_word()
 def main():
     """
     Main method for flashcard
     """
     load_dotenv()
+    st.markdown("<h2><b>Flashcard</b></h2>",unsafe_allow_html=True)
+
+    check_url_parameters()
     if st.session_state.get("reset", True):
         find_new_word()
         st.session_state.reset = False
-    st.markdown("<h2><b>Flashcard</b></h2>",unsafe_allow_html=True)
+
     if st.session_state["word_original"]:
         with st.form("word_chosser", clear_on_submit=True):
             st.markdown(f"<h3><b>{st.session_state["word_original"]["orig_word"]}</b></h3>",unsafe_allow_html=True)
