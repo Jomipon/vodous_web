@@ -136,8 +136,10 @@ def main():
         with st.form("word_chosser", clear_on_submit=True):
             st.markdown(f"<h3><b>{st.session_state["word_original"]["orig_word"]}</b></h3>",unsafe_allow_html=True)
             st.markdown(f"<i>{st.session_state["word_original"]["orig_note"]}</i>",unsafe_allow_html=True)
-            if st.form_submit_button("", icon=":material/speaker:", key="translate_show_from"):
-                st.session_state["show_audio_from"] = True
+            if not st.session_state.get("show_audio_from", False):
+                if st.form_submit_button("", icon=":material/speaker:", key="translate_show_from"):
+                    st.session_state["show_audio_from"] = True
+                    st.rerun()
             if st.session_state.get("show_audio_from", False):
                 get_word_speech(st.session_state["word_original"]["orig_word_id"], "word_speech_from")
                 audio = st.session_state["word_speech_from"]
@@ -147,8 +149,10 @@ def main():
             if st.session_state.get("show_translate", False):
                 st.markdown(f"<h3><b>{st.session_state["word_original"]["tran_word"]}</b></h3>",unsafe_allow_html=True)
                 st.markdown(f"<i>{st.session_state["word_original"]["tran_note"]}</i>",unsafe_allow_html=True)
-                if st.form_submit_button("", icon=":material/speaker:", key="translate_show_to"):
-                    st.session_state["show_audio_to"] = True
+                if not st.session_state.get("show_audio_to", False):
+                    if st.form_submit_button("", icon=":material/speaker:", key="translate_show_to"):
+                        st.session_state["show_audio_to"] = True
+                        st.rerun()
                 if st.session_state.get("show_audio_to", False):
                     get_word_speech(st.session_state["word_original"]["tran_word_id"], "word_speech_to")
                     audio = st.session_state["word_speech_to"]
