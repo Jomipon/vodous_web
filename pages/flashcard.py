@@ -111,15 +111,20 @@ def check_url_parameters():
     para_language_to = params.get("language_to", "CZ").upper()
     trans_found = False
     
-    for trans in json.loads(responce["data"])["data"]:
-        language_from = trans['word_language_from'].upper()
-        language_to = trans['word_language_to'].upper()
-        st.button(f"{language_from} - {language_to}", on_click=change_translate, args=(language_from, language_to,))
-        if para_language_from == language_from and para_language_to == language_to:
-            trans_found = True
-    if not trans_found:
-        change_translate(para_language_from, para_language_to)
-        reset_word()
+    all_languages = json.loads(responce["data"])["data"]
+    columns = st.columns(len(all_languages))
+    lang_counter = 0
+    for column in columns:
+        with column:
+            language_from = all_languages[lang_counter]['word_language_from'].upper()
+            language_to = all_languages[lang_counter]['word_language_to'].upper()
+            st.button(f"{language_from} - {language_to}", key=f"{language_from}_{language_to}_button", on_click=change_translate, args=(language_from, language_to,))
+            if para_language_from == language_from and para_language_to == language_to:
+                trans_found = True
+        if not trans_found:
+            change_translate(para_language_from, para_language_to)
+            reset_word()
+        lang_counter = lang_counter + 1
 def main():
     """
     Main method for flashcard
@@ -134,29 +139,35 @@ def main():
 
     if st.session_state["word_original"]:
         with st.form("word_chosser", clear_on_submit=True):
-            st.markdown(f"<h3><b>{st.session_state["word_original"]["orig_word"]}</b></h3>",unsafe_allow_html=True)
-            st.markdown(f"<i>{st.session_state["word_original"]["orig_note"]}</i>",unsafe_allow_html=True)
-            if not st.session_state.get("show_audio_from", False):
-                if st.form_submit_button("", icon=":material/speaker:", key="translate_show_from"):
-                    st.session_state["show_audio_from"] = True
-                    st.rerun()
-            if st.session_state.get("show_audio_from", False):
-                get_word_speech(st.session_state["word_original"]["orig_word_id"], "word_speech_from")
-                audio = st.session_state["word_speech_from"]
-                st.audio(audio["data"], format="audio/mp3", autoplay=True)
+            col1, col2 = st.columns([1,2])
+            with col1:
+                st.markdown(f"<h3><b>{st.session_state["word_original"]["orig_word"]}</b></h3>",unsafe_allow_html=True)
+                st.markdown(f"<i>{st.session_state["word_original"]["orig_note"]}</i>",unsafe_allow_html=True)
+            with col2:
+                if not st.session_state.get("show_audio_from", False):
+                    if st.form_submit_button("", icon=":material/speaker:", key="translate_show_from"):
+                        st.session_state["show_audio_from"] = True
+                        st.rerun()
+                if st.session_state.get("show_audio_from", False):
+                    get_word_speech(st.session_state["word_original"]["orig_word_id"], "word_speech_from")
+                    audio = st.session_state["word_speech_from"]
+                    st.audio(audio["data"], format="audio/mp3", autoplay=True)
             if st.form_submit_button("Přeložit"):
                 st.session_state["show_translate"] = True
             if st.session_state.get("show_translate", False):
-                st.markdown(f"<h3><b>{st.session_state["word_original"]["tran_word"]}</b></h3>",unsafe_allow_html=True)
-                st.markdown(f"<i>{st.session_state["word_original"]["tran_note"]}</i>",unsafe_allow_html=True)
-                if not st.session_state.get("show_audio_to", False):
-                    if st.form_submit_button("", icon=":material/speaker:", key="translate_show_to"):
-                        st.session_state["show_audio_to"] = True
-                        st.rerun()
-                if st.session_state.get("show_audio_to", False):
-                    get_word_speech(st.session_state["word_original"]["tran_word_id"], "word_speech_to")
-                    audio = st.session_state["word_speech_to"]
-                    st.audio(audio["data"], format="audio/mp3", autoplay=True)
+                col1, col2 = st.columns([1,2])
+                with col1:
+                    st.markdown(f"<h3><b>{st.session_state["word_original"]["tran_word"]}</b></h3>",unsafe_allow_html=True)
+                    st.markdown(f"<i>{st.session_state["word_original"]["tran_note"]}</i>",unsafe_allow_html=True)
+                with col2:
+                    if not st.session_state.get("show_audio_to", False):
+                        if st.form_submit_button("", icon=":material/speaker:", key="translate_show_to"):
+                            st.session_state["show_audio_to"] = True
+                            st.rerun()
+                    if st.session_state.get("show_audio_to", False):
+                        get_word_speech(st.session_state["word_original"]["tran_word_id"], "word_speech_to")
+                        audio = st.session_state["word_speech_to"]
+                        st.audio(audio["data"], format="audio/mp3", autoplay=True)
                 score = st.session_state["word_original"]["success_rate"]
                 col1, col2, col3 = st.columns(3)
                 with col1:
