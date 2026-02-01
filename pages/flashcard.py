@@ -89,13 +89,11 @@ def reset_word():
     Reset values to reload word
     """
     st.session_state.reset = True
-    st.session_state["word_speech"] = None
     st.session_state["show_audio_from"] = False
     st.session_state["show_audio_to"] = False
     st.session_state["show_translate"] = False
     st.session_state["word_speech_from"] = False
     st.session_state["word_speech_to"] = False
-    
 
 def check_url_parameters():
     """
@@ -106,11 +104,6 @@ def check_url_parameters():
     url = url_base + url_all_languages
     responce = download_get_url(url)
     
-    params = st.query_params
-    para_language_from = params.get("language_from", "EN").upper()
-    para_language_to = params.get("language_to", "CZ").upper()
-    trans_found = False
-    
     all_languages = json.loads(responce["data"])["data"]
     columns = st.columns(len(all_languages))
     lang_counter = 0
@@ -119,24 +112,18 @@ def check_url_parameters():
             language_from = all_languages[lang_counter]['word_language_from'].upper()
             language_to = all_languages[lang_counter]['word_language_to'].upper()
             st.button(f"{language_from} - {language_to}", key=f"{language_from}_{language_to}_button", on_click=change_translate, args=(language_from, language_to,))
-            if para_language_from == language_from and para_language_to == language_to:
-                trans_found = True
-        if not trans_found:
-            change_translate(para_language_from, para_language_to)
-            reset_word()
         lang_counter = lang_counter + 1
+    
 def main():
     """
     Main method for flashcard
     """
     load_dotenv()
     st.markdown("<h2><b>Flashcard</b></h2>",unsafe_allow_html=True)
-
     check_url_parameters()
     if st.session_state.get("reset", True):
         find_new_word()
         st.session_state.reset = False
-
     if st.session_state["word_original"]:
         with st.form("word_chosser", clear_on_submit=True):
             col1, col2 = st.columns([1,2])
