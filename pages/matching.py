@@ -7,7 +7,7 @@ import json
 from uuid import uuid4
 import streamlit as st
 from dotenv import load_dotenv
-from support import download_get_url
+from support import download_get_url, download_post_url
 
 def parse_responce_new_word(responce):
     """
@@ -25,14 +25,16 @@ def parse_responce_new_word(responce):
         "random_id": responce["data"]["random_id"]
             }
 
-
 def find_new_word(word_alias_name):
     """
     Send request to API for next word
     """
+    params = st.query_params
+    para_language_from = params.get("language_from", "EN").upper()
+    para_language_to = params.get("language_to", "CZ").upper()
     url_base = os.getenv("FAST_API_URL_BASE")
     url_random_word = os.getenv("FAST_API_URL_RANDOM_WORD")
-    url = url_base + url_random_word.format(id_seed=123456789)
+    url = url_base + url_random_word.format(id_seed=123456789) + f"?word_language_from={para_language_from}&word_language_to={para_language_to}"
     random_word = download_get_url(url)
     if random_word["status"] == 200:
         new_word = parse_responce_new_word(json.loads(random_word["data"]))
@@ -77,6 +79,44 @@ class WordButtonState():
         self.word_choosed = choosed
         self.word_translate_id = translate_id
         self.word_order_id = str(uuid4())
+def reset_word():
+    """
+    Reset values to reload word
+    """
+    st.session_state.reset = True
+    st.session_state["words_all"] = []
+    st.session_state.pop("words_all")
+    
+def change_translate(language_from: str, language_to: str):
+    """
+    Set FROM and TO for words
+    
+    :param language_from: Language short
+    :type language_from: str
+    :param language_to: Language short
+    :type language_to: str
+    """
+    st.query_params["language_from"] = language_from
+    st.query_params["language_to"] = language_to
+    reset_word()
+def check_url_parameters():
+    """
+    Check and set default url parameters
+    """
+    url_base = os.getenv("FAST_API_URL_BASE")
+    url_all_languages = os.getenv("FAST_API_URL_WORD_LANGUAGES")
+    url = url_base + url_all_languages
+    responce = download_get_url(url)
+    
+    all_languages = json.loads(responce["data"])["data"]
+    columns = st.columns(len(all_languages))
+    lang_counter = 0
+    for column in columns:
+        with column:
+            language_from = all_languages[lang_counter]['word_language_from'].upper()
+            language_to = all_languages[lang_counter]['word_language_to'].upper()
+            st.button(f"{language_from} - {language_to}", key=f"{language_from}_{language_to}_button", on_click=change_translate, args=(language_from, language_to,))
+        lang_counter = lang_counter + 1
 
 def button_onclick(word_id: str):
     """
@@ -86,11 +126,12 @@ def button_onclick(word_id: str):
     :type word_id: str
     """
     if "words_all" not in st.session_state:
-        return 
+        return
     # get all selected word
     word_clicked = [word for word in st.session_state["words_all"] if word.word_id_from == word_id or word.word_id_to == word_id]
     if len(word_clicked) == 0:
-        return 
+        return
+    st.session_state["matching_button_count"] = st.session_state["matching_button_count"] + 1
     word_clicked = word_clicked[0]
     if word_clicked.word_choosed:
         # click -> unclick
@@ -106,6 +147,7 @@ def button_onclick(word_id: str):
             for word_from in [word for word in st.session_state["words_all"] if word.word_id_to]:
                 word_from.word_choosed = False
         word_clicked.word_choosed = True
+    # set enabled in button
     words_from_checked = [word for word in st.session_state["words_all"] if word.word_id_from and word.word_choosed]
     words_to_checked = [word for word in st.session_state["words_all"] if word.word_id_to and word.word_choosed]
     if len(words_from_checked) > 0 and len(words_to_checked) > 0:
@@ -118,8 +160,30 @@ def button_onclick(word_id: str):
             words_from_checked[0].word_choosed = False
             words_to_checked[0].word_choosed = False
     if len([word for word in st.session_state["words_all"] if word.word_enabled]) == 0:
-        st.session_state["words_all"] = []
-        st.session_state.pop("words_all")
+        send_rating()
+        reset_word()
+def send_rating():
+    """
+    Send rating to database
+    """
+    params = st.query_params
+    para_language_from = params.get("language_from", "EN").upper()
+    para_language_to = params.get("language_to", "CZ").upper()
+    url_base = os.getenv("FAST_API_URL_BASE")
+    url_matching_rating = os.getenv("FAST_API_URL_MATCHING_RATING")
+    url = url_base + url_matching_rating
+    data_rating = {}
+    data_rating["matching_rating_id"] = str(uuid4())
+    data_rating["click_counter"] = st.session_state["matching_button_count"]
+    data_rating["words"] = []
+    data_rating["language_from"] = para_language_from
+    data_rating["language_to"] = para_language_to
+    for word in st.session_state["words_all"]:
+        word_id = word.word_id_from
+        if not word_id:
+            word_id = word.word_id_to
+        data_rating["words"].append({"matching_rating_word_id": str(uuid4()), "word_id": word_id})
+    download_post_url(url, str(json.dumps(data_rating)),["Content-Type: application/json"])
 
 def main():
     """
@@ -133,8 +197,8 @@ def main():
     except:
         matching_word_count = 4
     
-    st.write("Matching")
-
+    st.markdown("<h2><b>Matching</b></h2>",unsafe_allow_html=True)
+    check_url_parameters()
     if "words_all" not in st.session_state:
         data = []
         for index in range(matching_word_count):
@@ -143,6 +207,7 @@ def main():
             data.append(WordButtonState("", st.session_state[f"word_{index}"]["tran_word_id"], st.session_state[f"word_{index}"]["tran_word"], True, False, st.session_state[f"word_{index}"]["orig_word_id"]))
         data.sort(key=lambda x: x.word_order_id)
         st.session_state["words_all"] = data
+        st.session_state["matching_button_count"] = 0
     #CSS for button primary / secondary
     st.markdown("""
     <style>
