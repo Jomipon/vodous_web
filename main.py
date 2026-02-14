@@ -19,6 +19,7 @@ pg = pgs.PageController()
 page_board         = pg.page_create("pages/board.py", "Board", "board")
 page_flashcard     = pg.page_create("pages/flashcard.py", "Flash card", "flashcard")
 page_matching      = pg.page_create("pages/matching.py", "Matching", "matching")
+page_storytelling  = pg.page_create("pages/storytelling.py", "StoryTelling", "storytelling")
 
 pg.create_page_navigator()
 
