@@ -17,7 +17,6 @@ def main():
         1: "Custom"
     }
     st.session_state.setdefault("topic", "")
-    #st.session_state.setdefault("topic_ready", False)
     st.session_state["topic_ready"] = len(st.session_state["topic"]) > 0
     st.session_state.setdefault("story_ready", False)
     st.session_state.setdefault("student_version", "")
@@ -85,13 +84,11 @@ def main():
     
     st.session_state["student_version_ready"] = len(st.session_state["student_version"]) > 0
     if st.button("Send", disabled=not st.session_state["student_version_ready"]):
-        st.write("Sending story to server ...")
         url_base = os.getenv("FAST_API_URL_BASE")
         url_evaluation = os.getenv("FAST_API_URL_STORYTELLING_EVALUATION")
         url = url_base + url_evaluation
         evaluation_data = download_post_url(url, json.dumps({"original": st.session_state["story_text"], "student": st.session_state["student_version"]}),["Content-Type: application/json"])
         evaluation_data = json.loads(evaluation_data.decode("utf-8"))
-        st.write(f"{evaluation_data=}")
         st.session_state["result_corrected_text"] = evaluation_data["corrected_text"]
         st.session_state["result_score"] = evaluation_data["score_0_100"]
         st.session_state["result_level"] = evaluation_data["cefr_estimate"]
