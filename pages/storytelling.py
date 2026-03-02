@@ -5,6 +5,17 @@ import streamlit as st
 from dotenv import load_dotenv
 from support import download_get_url, download_post_url
 
+def get_story_speech(story_id, name):
+    """
+    Download speech for word
+    """
+    if not st.session_state.get(name, None):
+        url_base = os.getenv("FAST_API_URL_BASE")
+        url_word_speech = os.getenv("FAST_API_URL_STORYTELLING_SPEECH")
+        url = url_base + url_word_speech.format(story_id=story_id)
+        speech_word = download_get_url(url)
+
+        st.session_state[name] = speech_word
 
 def main():
     """
@@ -64,12 +75,16 @@ def main():
         story_data = json.loads(story_data.decode("utf-8"))
         if story_data["status"] == "OK":
             story_data = story_data["data"]
+            st.session_state["story_topics_id"] = story_data["storytelling_topics_id"]
+            st.session_state["story_story_id"] = story_data["storytelling_story_id"]
             st.session_state["story_level"] = story_data["level"]
             st.session_state["story_title"] = story_data["title"]
             st.session_state["story_text"] = story_data["text"]
             st.session_state["story_word_count"] = story_data["word_count"]
-            st.session_state["story_vocab"] = story_data["vocab"]
-            st.session_state["story_questions"] = story_data["questions"]
+            #st.session_state["story_title_tts_path"] = story_data["story_title_tts_path"]
+            #st.session_state["story_text_tts_path"] = story_data["story_text_tts_path"]
+            #st.session_state["story_vocab"] = story_data["vocab"]
+            #st.session_state["story_questions"] = story_data["questions"]
             st.session_state["story_ready"] = True
         else:
             st.error("Error in communation with server")
@@ -77,11 +92,23 @@ def main():
         st.markdown(f'<h2><b>{st.session_state["story_title"]}</b></h2>',unsafe_allow_html=True)
         st.markdown(f'<i>{st.session_state["story_level"]} ({st.session_state["story_word_count"]} words)</i>',unsafe_allow_html=True)
         st.markdown(f'{st.session_state["story_text"]}',unsafe_allow_html=True)
+        
+        if not st.session_state.get("show_audio_story", False):
+            if st.button("", icon=":material/speaker:", key="show_audio_story"):
+                st.session_state["show_audio_story"] = True
+                st.rerun()
+        if st.session_state.get("show_audio_story", False):
+            get_story_speech(f'{st.session_state["story_story_id"]}', "audio_story")
+            audio = st.session_state["audio_story"]
+            st.audio(audio["data"], format="audio/mp3", autoplay=True)
+
+
+
         st.markdown(f'{st.session_state["story_vocab"]}',unsafe_allow_html=True)
         st.markdown(f'<b><i>{st.session_state["story_questions"]}</i></b>',unsafe_allow_html=True)
         
         st.text_area("Your version:", key="student_version")
-    
+
     st.session_state["student_version_ready"] = len(st.session_state["student_version"]) > 0
     if st.button("Send", disabled=not st.session_state["student_version_ready"]):
         url_base = os.getenv("FAST_API_URL_BASE")
@@ -89,14 +116,15 @@ def main():
         url = url_base + url_evaluation
         evaluation_data = download_post_url(url, json.dumps({"original": st.session_state["story_text"], "student": st.session_state["student_version"]}),["Content-Type: application/json"])
         evaluation_data = json.loads(evaluation_data.decode("utf-8"))
-        st.session_state["result_corrected_text"] = evaluation_data["corrected_text"]
-        st.session_state["result_score"] = evaluation_data["score_0_100"]
-        st.session_state["result_level"] = evaluation_data["cefr_estimate"]
-        st.session_state["result_feedback"] = evaluation_data["short_feedback"]
-        st.session_state["result_strengths"] = evaluation_data["strengths"]
-        st.session_state["result_improvements"] = evaluation_data["improvements"]
-        st.session_state["result_top_corrections"] = evaluation_data["top_corrections"]
-        st.session_state["result_ready"] = True
+        if evaluation_data["status"] == "OK":
+            st.session_state["result_corrected_text"] = evaluation_data["data"]["corrected_text"]
+            st.session_state["result_score"] = evaluation_data["data"]["score_0_100"]
+            st.session_state["result_level"] = evaluation_data["data"]["cefr_estimate"]
+            st.session_state["result_feedback"] = evaluation_data["data"]["short_feedback"]
+            st.session_state["result_strengths"] = evaluation_data["data"]["strengths"]
+            st.session_state["result_improvements"] = evaluation_data["data"]["improvements"]
+            st.session_state["result_top_corrections"] = evaluation_data["data"]["top_corrections"]
+            st.session_state["result_ready"] = True
     if st.session_state["result_ready"]:
         st.markdown("<h2><b>Result:</b></h2>",unsafe_allow_html=True)
         st.markdown("<h3><b>Corrected text:</b></h3>",unsafe_allow_html=True)
@@ -120,3 +148,4 @@ if __name__ == "__main__":
     main()
 
 
+ 
