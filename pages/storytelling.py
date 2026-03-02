@@ -71,7 +71,7 @@ def main():
         url_base = os.getenv("FAST_API_URL_BASE")
         url_story = os.getenv("FAST_API_URL_STORYTELLING_STORY")
         url = url_base + url_story
-        story_data = download_post_url(url, json.dumps({"topic": st.session_state["topic"]}),["Content-Type: application/json"])
+        story_data = download_post_url(url, json.dumps({"topic": st.session_state["topic"], "tense": "PAST"}),["Content-Type: application/json"])
         story_data = json.loads(story_data.decode("utf-8"))
         if story_data["status"] == "OK":
             story_data = story_data["data"]
