@@ -1,17 +1,30 @@
 from io import BytesIO
 import pycurl
 
-def download_get_url(url):
+def download_get_url(url, post_data = None, headers = None):
     """
     Send GET request to server and return status + responce
     
     :param url: URL web address
     """
+    if post_data is not None:
+        if (post_data.strip().startswith("{") or post_data.strip().startswith("[")):
+            post_data = (
+                post_data
+                .replace(": True", ": true")
+                .replace(": False", ": false")
+                .replace(": None", ": null")
+            )
+
     client = pycurl.Curl()
     client.setopt(pycurl.URL, url.encode("utf-8"))
+    if post_data:
+        client.setopt(client.POSTFIELDS, post_data)
     buffer = BytesIO()
     client.setopt(client.WRITEDATA, buffer)
     client.setopt(pycurl.USERAGENT, "VodousApp/1.0 (+tomas.vlasaty8@gmail.cz; https://jomipon-beruska-prototyp.streamlit.app/)")
+    if headers is not None and len(headers) > 0:
+        client.setopt(pycurl.HTTPHEADER, headers)
     try:
         client.perform()
         status = client.getinfo(pycurl.RESPONSE_CODE)

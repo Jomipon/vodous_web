@@ -2,7 +2,7 @@ import streamlit as st
 
 def main_menu():
     #menu = st.expander("Menu")
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         st.page_link("pages/board.py", label="Přehled")
     with col2:
@@ -10,7 +10,10 @@ def main_menu():
     with col3:
         st.page_link("pages/matching.py", label="Matching")
     with col4:
-        st.page_link("pages/storytelling.py", label="StoryTelling")
+        st.page_link("pages/storytelling.py", label="Story Telling")
+    with col5:
+        st.page_link("pages/sentence_changer.py", label="Sentence Changer")
+        
     #with menu:
     #    tab_base, tab_company, tab_assortment, tab_settings, tab_test = st.tabs(["Přehled", "Partneři", "Sklad", "Nastavení", "Test"])
     #    with tab_base:

@@ -16,10 +16,11 @@ APP_NAME = os.getenv("APP_NAME")
 
 # pages
 pg = pgs.PageController()
-page_board         = pg.page_create("pages/board.py", "Board", "board")
-page_flashcard     = pg.page_create("pages/flashcard.py", "Flash card", "flashcard")
-page_matching      = pg.page_create("pages/matching.py", "Matching", "matching")
-page_storytelling  = pg.page_create("pages/storytelling.py", "StoryTelling", "storytelling")
+page_board           = pg.page_create("pages/board.py", "Board", "board")
+page_flashcard       = pg.page_create("pages/flashcard.py", "Flash card", "flashcard")
+page_matching        = pg.page_create("pages/matching.py", "Matching", "matching")
+page_storytelling    = pg.page_create("pages/storytelling.py", "StoryTelling", "storytelling")
+page_sentence_change = pg.page_create("pages/sentence_changer.py", "Sentence changer", "sentencechanger")
 
 pg.create_page_navigator()
 
