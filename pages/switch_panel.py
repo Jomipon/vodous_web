@@ -2,7 +2,7 @@ import streamlit as st
 
 def main_menu():
     #menu = st.expander("Menu")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4, col5 = st.columns([13,13,13,13,17])
     with col1:
         st.page_link("pages/board.py", label="Přehled")
     with col2:
