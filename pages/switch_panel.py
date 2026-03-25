@@ -1,7 +1,9 @@
 import streamlit as st
 
 def main_menu():
-    #menu = st.expander("Menu")
+    """
+    Create main menu
+    """
     col1, col2, col3, col4, col5 = st.columns([13,13,13,13,17])
     with col1:
         st.page_link("pages/board.py", label="Přehled")
@@ -13,17 +15,3 @@ def main_menu():
         st.page_link("pages/storytelling.py", label="Story Telling")
     with col5:
         st.page_link("pages/sentence_changer.py", label="Sentence Changer")
-        
-    #with menu:
-    #    tab_base, tab_company, tab_assortment, tab_settings, tab_test = st.tabs(["Přehled", "Partneři", "Sklad", "Nastavení", "Test"])
-    #    with tab_base:
-    #        st.page_link("pages/board.py", label="Přehled")
-    #    with tab_company:
-    #        st.page_link("pages/flashcard.py", label="flash card")
-    #    with tab_assortment:
-    #        st.write("tab_assortment")
-    #    with tab_settings:
-    #        st.write("tab_settings")
-    #    with tab_test:
-    #        st.write("tab_test")
-

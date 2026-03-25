@@ -27,6 +27,11 @@ def main():
         0: "Random",
         1: "Custom"
     }
+    story_length_types = {
+        "Short":{"MIN":40,"MAX":80},
+        "Medium":{"MIN":80,"MAX":120},
+        "Long":{"MIN":140,"MAX":180}}
+
     st.session_state.setdefault("topic", "")
     st.session_state["topic_ready"] = len(st.session_state["topic"]) > 0
     st.session_state.setdefault("story_ready", False)
@@ -66,12 +71,22 @@ def main():
 
     st.markdown('<h3><b>Topic:</b></h3>',unsafe_allow_html=True)
     st.markdown(f'<b>{st.session_state.get('topic', '')}</b>',unsafe_allow_html=True)
-
+    st.radio("Length:",
+                options=list(story_length_types.keys()),
+                horizontal=True,
+                key="story_length")
+    
     if st.button("Generate story", disabled=not st.session_state["topic_ready"]):
         url_base = os.getenv("FAST_API_URL_BASE")
         url_story = os.getenv("FAST_API_URL_STORYTELLING_STORY")
         url = url_base + url_story
-        story_data = download_post_url(url, json.dumps({"topic": st.session_state["topic"], "tense": "PAST"}),["Content-Type: application/json"])
+        story_post_data = {
+            "topic": st.session_state["topic"], 
+            "tense": "PAST",
+            "min_words": story_length_types[st.session_state["story_length"]]["MIN"],
+            "max_words": story_length_types[st.session_state["story_length"]]["MAX"]
+        }
+        story_data = download_post_url(url, json.dumps(story_post_data),["Content-Type: application/json"])
         story_data = json.loads(story_data.decode("utf-8"))
         if story_data["status"] == "OK":
             story_data = story_data["data"]
